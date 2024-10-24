@@ -18,8 +18,10 @@ contract RNSIPFSRegistry is Ownable {
     }
 
     function updateRnsLink(string memory id, string memory ipfsLink) public {
-        uint256 tokenId = uint256(keccak256(abi.encodePacked(id)));
-        require(nftContract.getAddress(tokenId) == msg.sender, "Not the token owner");
+        if (msg.sender != owner()) {
+            uint256 tokenId = uint256(keccak256(abi.encodePacked(id)));
+            require(nftContract.getAddress(tokenId) == msg.sender, "Not the token owner or contract owner");
+        }
         rnsLinks[id] = ipfsLink;
     }
 

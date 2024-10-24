@@ -1,0 +1,22 @@
+{
+    "name": "ens-ipfs-gateway",
+    "version": "1.0.0",
+    "description": "ENS/IPFS Gateway for ron.wiki",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js"
+    },
+    "dependencies": {
+        "@helia/unixfs": "^4.0.0",
+        "ethers": "^6.13.4",
+        "express": "^4.21.1",
+        "helia": "^5.1.0",
+        "ipfs-http-client": "^60.0.1",
+        "node-cache": "^5.1.2",
+        "node-fetch": "^2.6.9"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.22"
+    }
+}

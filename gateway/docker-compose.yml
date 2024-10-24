@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    container_name: ens-ipfs-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "3000:3000"
+      - "4001:4001"  # IPFS swarm
+      - "8080:8080"  # IPFS gateway
+    volumes:
+      - ./data/ipfs:/data/ipfs
+      - ./data/nginx_cache:/var/cache/nginx/gateway_cache
+      - ./ssl:/etc/nginx/ssl
+      - ./logs:/var/log/nginx  # Modifié pour pointer directement vers le répertoire nginx
+    environment:
+      - DOMAIN=${DOMAIN}
+      - RPC_URL=${RPC_URL}
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS}
+    networks:
+      - gateway-network
+
+networks:
+  gateway-network:
+    driver: bridge
