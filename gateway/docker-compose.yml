@@ -20,6 +20,7 @@ services:
       - DOMAIN=${DOMAIN}
       - RPC_URL=${RPC_URL}
       - CONTRACT_ADDRESS=${CONTRACT_ADDRESS}
+      - CONTRACT_RNS_UNIFIED_ADDRESS=${CONTRACT_RNS_UNIFIED_ADDRESS}
     networks:
       - gateway-network
 

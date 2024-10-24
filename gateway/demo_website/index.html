@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Bento-like</title>
+    <link href="https://unpkg.com/lucide-icons/dist/umd/lucide.css" rel="stylesheet">
+    <link rel="shortcut icon" href="https://cdn.skymavis.com/explorer-cdn/asset/fav.ico">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hostname = window.location.hostname;
+            const parts = hostname.split('.');
+            if (parts.length >= 2) {
+                const displayName = parts.slice(0, -1).join('.');
+                document.querySelector('h1').textContent = displayName;
+            }
+        });
+    </script>
+    <style>
+        /* Base styles */
+:root {
+    --purple-gradient: linear-gradient(to right, #9333ea, #6366f1);
+    --orange-gradient: linear-gradient(to right, #f97316, #ec4899);
+    --amber-gradient: linear-gradient(to right, #f59e0b, #f97316);
+    --green-gradient: linear-gradient(to right, #22c55e, #10b981);
+    --blue-gradient: linear-gradient(to right, #3b82f6, #06b6d4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(to bottom right, #111827, #1f2937);
+    color: white;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+/* Profile section */
+.profile {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.avatar-container {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 1rem;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatar-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(to top right, rgba(147, 51, 234, 0.2), rgba(236, 72, 153, 0.2));
+}
+
+.profile h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.profile .title {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.125rem;
+}
+
+/* Grid layout */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Card styles */
+.card {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+.card:hover::before {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.span-2 {
+    grid-column: span 1;
+}
+
+@media (min-width: 768px) {
+    .span-2 {
+        grid-column: span 2;
+    }
+}
+
+.gradient-purple { background: var(--purple-gradient); }
+.gradient-orange { background: var(--orange-gradient); }
+.gradient-amber { background: var(--amber-gradient); }
+.gradient-green { background: var(--green-gradient); }
+.gradient-blue { background: var(--blue-gradient); }
+
+.card i {
+    position: relative;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.card .content {
+    position: relative;
+}
+
+.card h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.card p {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Social links */
+.social {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.social-link {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.social-link i {
+    font-size: 1.25rem;
+}
+
+/* Edit button styles */
+.edit-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.edit-button:hover {
+    background-color: #2563eb;
+}
+
+.edit-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    animation: shine 4s ease-in-out infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -200%;
+    }
+    100% {
+        left: 200%;
+    }
+}
+
+.edit-button-text {
+    position: relative;
+    z-index: 1;
+}
+
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="profile">
+            <div class="avatar-container">
+                <img 
+                    src="https://cdn.skymavis.com/explorer-cdn/ronin-website/homepage-hero.png" 
+                    alt="rns name" 
+                    class="avatar"
+                >
+            </div>
+            <h1>rns name</h1>
+            <p class="title">Welcome to my personal bento-like</p>
+        </section>
+
+        <section class="grid">
+            <a href="#" class="card span-2 gradient-purple">
+                <i class="lucide lucide-globe"></i>
+                <div class="content">
+                    <h2>Portfolio</h2>
+                    <p>Check out my latest projects and designs</p>
+                </div>
+            </a>
+
+            <a href="#" class="card gradient-orange">
+                <i class="lucide lucide-camera"></i>
+                <div class="content">
+                    <h2>Favourite Ronin Game</h2>
+                    <p>Wild Forest</p>
+                </div>
+            </a>
+
+            <a href="#" class="card gradient-amber">
+                <i class="lucide lucide-coffee"></i>
+                <div class="content">
+                    <h2>Coffee Blog</h2>
+                    <p>My journey through specialty coffee</p>
+                </div>
+            </a>
+
+            <a href="#" class="card gradient-green">
+                <i class="lucide lucide-music"></i>
+                <div class="content">
+                    <h2>Spotify Playlist</h2>
+                    <p>Music that keeps me coding</p>
+                </div>
+            </a>
+
+            <a href="#" class="card span-2 gradient-blue">
+                <i class="lucide lucide-sparkles"></i>
+                <div class="content">
+                    <h2>Latest Project</h2>
+                    <p>AI-powered design tool</p>
+                </div>
+            </a>
+        </section>
+
+        <section class="social">
+            <a href="#" class="social-link">
+                <i class="lucide lucide-github"></i>
+            </a>
+            <a href="#" class="social-link">
+                <i class="lucide lucide-twitter"></i>
+            </a>
+            <a href="#" class="social-link">
+                <i class="lucide lucide-instagram"></i>
+            </a>
+            <a href="#" class="social-link">
+                <i class="lucide lucide-linkedin"></i>
+            </a>
+            <a href="#" class="social-link">
+                <i class="lucide lucide-mail"></i>
+            </a>
+        </section>
+    </main>
+    
+    <button class="edit-button" onclick="openDiscord()">
+        <span class="edit-button-text">1) What</span>
+    </button>
+
+    <script>
+        function openDiscord() {
+            window.open('https://discord.com/users/451508253810098187', '_blank');
+        }
+    </script>
+</body>
+</html>
