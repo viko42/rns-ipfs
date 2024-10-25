@@ -44,13 +44,7 @@ contract RNSIPFSRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    // Ajout d'une fonction receive
-    receive() external payable {
-        // Cette fonction peut rester vide ou vous pouvez y ajouter une logique si nécessaire
-    }
+    receive() external payable {}
 
-    // Ou ajout d'une fonction fallback
-    fallback() external payable {
-        // Cette fonction peut rester vide ou vous pouvez y ajouter une logique si nécessaire
-    }
+    fallback() external payable {}
 }
