@@ -8,10 +8,7 @@ const app = express();
 // Cache system (keeps items for 1 hour)
 const cache = new NodeCache({ stdTTL: 3600 });
 
-// Create Helia instance
-let helia;
-let fs;
-
+// Initialize Helia IPFS client and UnixFS interface
 async function initializeHelia() {
   const { createHelia } = await import("helia");
   const { unixfs } = await import("@helia/unixfs");
@@ -19,12 +16,12 @@ async function initializeHelia() {
   helia = await createHelia();
   fs = unixfs(helia);
 
-  // Vérifier la connexion au réseau IPFS
+  // Log the number of connected IPFS peers for monitoring
   const peers = await helia.libp2p.peerStore.all();
-  console.log(`Connected to ${peers.length} peers`);
+  console.log(`Connected to ${peers.length} IPFS peers`);
 }
 
-// Modify this part
+// Server startup function
 async function startServer() {
   await initializeHelia();
 
@@ -34,14 +31,12 @@ async function startServer() {
   });
 }
 
-// Your Ethereum provider
 const rpcUrl = process.env.RPC_URL;
 if (!rpcUrl) {
   throw new Error("RPC_URL environment variable is not set");
 }
 const provider = new ethers.JsonRpcProvider(rpcUrl);
 
-// Your Ethereum contract
 const contractAddress = process.env.CONTRACT_ADDRESS;
 const contractRNSUnifiedAddress = process.env.CONTRACT_RNS_UNIFIED_ADDRESS;
 if (!contractAddress) {
@@ -171,58 +166,52 @@ const contractRNSUnified = new ethers.Contract(
   provider
 );
 
+// Retrieve the namehash for a given RNS (Ron Name Service) domain
 async function getRNSUnifiedLink(rns) {
   try {
     const namehash = await contractRNSUnified.namehash(rns);
-
-    // Convert the result to decimal
-    const namehashDecimal = BigInt(namehash).toString(10);
-    return namehashDecimal;
+    // Convert the bytes32 namehash to a decimal string for use as an ID
+    return BigInt(namehash).toString(10);
   } catch (error) {
-    console.error(`Error for RNS ${rns}:`, error);
+    console.error(`Error generating namehash for RNS ${rns}:`, error);
     throw error;
   }
 }
-// Helper function to get IPFS content using ID
+
+// Fetch IPFS content using the provided ID (namehash)
 async function getIpfsContentById(id) {
   try {
-    // Check cache first
+    // Check in-memory cache first to reduce blockchain calls and IPFS lookups
     const cached = cache.get(id);
-    if (cached) {
-      return cached;
-    }
-    const ipfsHash = await contract.getIpfsLink(id); // Call contract function
+    if (cached) return cached;
 
-    if (!ipfsHash) {
-      throw new Error("No IPFS hash found");
-    }
+    // Retrieve IPFS hash from the smart contract
+    const ipfsHash = await contract.getIpfsLink(id);
+    if (!ipfsHash) throw new Error("No IPFS hash found for this ID");
 
-    if (!fs) {
-      throw new Error("IPFS system not initialized");
-    }
+    if (!fs) throw new Error("IPFS system not initialized");
 
-    // Get content from IPFS using Helia
+    // Fetch and decode content from IPFS
     const decoder = new TextDecoder();
     let content = "";
     for await (const chunk of fs.cat(ipfsHash)) {
       content += decoder.decode(chunk, { stream: true });
     }
 
-    // Save to cache
+    // Cache the fetched content
     cache.set(id, content);
 
     return content;
   } catch (error) {
-    console.error(`Error for ID ${id}:`, error);
+    console.error(`Error fetching IPFS content for ID ${id}:`, error);
     throw error;
   }
 }
 
-// Middleware to extract subdomain as rnssubdomain
+// Middleware to extract subdomain from host header
 app.use((req, res, next) => {
   const host = req.headers.host;
-  const subdomain = host.split(".")[0]; // Assumes subdomain is the first part
-  req.rnssubdomain = subdomain;
+  req.rnssubdomain = host.split(".")[0]; // Assumes subdomain is the first part
   next();
 });
 
@@ -230,22 +219,25 @@ app.use((req, res, next) => {
 app.get("/health", (req, res) => {
   res.send("OK");
 });
-// Main route handler
+
+// Main route handler for serving IPFS content based on RNS subdomain
 app.get("/", async (req, res) => {
   try {
     const rnssubdomain = req.rnssubdomain;
 
-    // Basic validation
+    // Basic validation to ensure subdomain is present and of minimum length
     if (!rnssubdomain || rnssubdomain.length < 3) {
-      return res.status(400).send("Invalid RNS");
+      return res.status(400).send("Invalid RNS subdomain");
     }
 
+    // Generate namehash ID for the RNS domain
     const rnsId = await getRNSUnifiedLink(`${rnssubdomain}.ron`);
+    // Fetch IPFS content using the namehash ID
     const content = await getIpfsContentById(rnsId);
     res.send(content);
   } catch (error) {
-    if (error.message === "No IPFS hash found") {
-      res.status(404).send("No IPFS content found for this subdomain ID");
+    if (error.message === "No IPFS hash found for this ID") {
+      res.status(404).send("No IPFS content found for this subdomain");
     } else {
       console.error("Server error:", error);
       res.status(500).send("Error fetching content");
