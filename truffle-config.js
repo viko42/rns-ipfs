@@ -18,14 +18,17 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "0.8.20",
+      version: "0.8.28",
       settings: {
+        evmVersion: "paris",
         optimizer: {
           enabled: true,
           runs: 200
         },
-        evmVersion: "istanbul"
-      }
+        debug: {
+          revertStrings: "debug"
+        }
+      },
     }
   }
 };
